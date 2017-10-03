@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Sprites>
+    <Sprite Name="Options_Icon" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\blue_settings_coloured.tga" x0="0" x1="0" x2="0" x3="0" x4="64" x5="64" y0="2" y1="2" y2="2" y3="2" y4="59" y5="59" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="Option_Icon_pressed" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\blue_settings_dark.tga" x0="0" x1="0" x2="0" x3="0" x4="64" x5="64" y0="2" y1="2" y2="2" y3="2" y4="59" y5="59" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="ffffffff" EndColor="ffffffff"/>
+    </Sprite>
+    <Sprite Name="Add_Bag" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\Add_Bag_Blue.tga" x0="0" x1="0" x2="0" x3="0" x4="64" x5="64" y0="2" y1="2" y2="2" y3="2" y4="59" y5="59" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="Add_bag_dark" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\Add_Bag_Dark.tga" x0="0" x1="0" x2="0" x3="0" x4="64" x5="64" y0="2" y1="2" y2="2" y3="2" y4="59" y5="59" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="suitcase" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\suitcase.tga" x0="0" x1="0" x2="0" x3="0" x4="256" x5="256" y0="0" y1="0" y2="0" y3="0" y4="256" y5="256" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <Sprite Name="suitcase_dark" Cycle="1">
+        <Frame Texture="ChargeSortedBags\Sprites\suitcase_dark.tga" x0="0" x1="0" x2="0" x3="0" x4="256" x5="256" y0="0" y1="0" y2="0" y3="0" y4="256" y5="256" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
+    </Sprite>
+    <AutoIconButton Name="Option_Button" NormalUnderIcon="" NormalIcon="" NormalOverIcon="Options_Icon" PressedUnderIcon="" PressedIcon="" PressedOverIcon="Option_Icon_pressed" FlybyUnderIcon="" FlybyIcon="" FlybyOverIcon="Options_Icon" PressedFlybyUnderIcon="" PressedFlybyIcon="" PressedFlybyOverIcon="Option_Icon_pressed" DisabledUnderIcon="" DisabledIcon="" DisabledOverIcon="Option_Icon_pressed" FocusedUnderIcon="" FocusedIcon="" FocusedOverIcon="Options_Icon"/>
+    <AutoIconButton Name="Add_Bag_Button" NormalUnderIcon="" NormalIcon="" NormalOverIcon="Add_Bag" PressedUnderIcon="" PressedIcon="" PressedOverIcon="Add_bag_dark" FlybyUnderIcon="" FlybyIcon="" FlybyOverIcon="Add_Bag" PressedFlybyUnderIcon="" PressedFlybyIcon="" PressedFlybyOverIcon="Add_bag_dark" DisabledUnderIcon="" DisabledIcon="" DisabledOverIcon="Option_Icon_pressed" FocusedUnderIcon="" FocusedIcon="" FocusedOverIcon="Add_Bag"/>
+    <AutoIconButton Name="Bag_Button" NormalUnderIcon="" NormalIcon="" NormalOverIcon="suitcase" PressedUnderIcon="" PressedIcon="" PressedOverIcon="suitcase_dark" FlybyUnderIcon="" FlybyIcon="" FlybyOverIcon="suitcase" PressedFlybyUnderIcon="" PressedFlybyIcon="" PressedFlybyOverIcon="suitcase_dark" DisabledUnderIcon="" DisabledIcon="" DisabledOverIcon="suitcase_dark" FocusedUnderIcon="" FocusedIcon="" FocusedOverIcon="suitcase"/>
+</Sprites>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Charge" APIVersion="16" Name="ChargeSortedBags" Description="Sorted Inventory Addon" Version="">
+    <Script Name="ChargeSortedBags.lua"/>
+    <Script Name="Libs/GeminiColor/GeminiColor.lua"/>
+    <Script Name="Libs/GeminiColor/GeminiColor.lua"/>
+    <Script Name="Libs/GeminiDB/GeminiDB-1.0.lua"/>
+    <Script Name="ItemPreview.lua"/>
+    <Script Name="ImprovedSalvage.lua"/>
+    <Form Name="ChargeSortedBags.xml"/>
+    <Form Name="ItemPreview.xml"/>
+    <Form Name="ImprovedSalvage.xml"/>
+    <ReplaceAddon Name="ForgeUI_Inventory"/>
+    <ReplaceAddon Name="Inventory"/>
+    <Script Name="WindowManagement.lua"/>
+    <Script Name="Options.lua"/>
+</Addon>
