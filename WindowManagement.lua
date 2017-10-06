@@ -80,7 +80,6 @@ function ChargeSortedBags:ShowMain()
 		self.Timer:Start()
 		self:SetWindows()
 		self:LoadBags()
-		self:LoadGrid()
 		self:LoadCurrencies()
     self:LoadBagWindow()
 		self.bFirstLoad = false
@@ -210,7 +209,7 @@ end
 
 
 function ChargeSortedBags:OnWindowMoved( wndHandler, wndControl, nOldLeft, nOldTop, nOldRight, nOldBottom )
-	if wndControl:GetName() == "InventoryBag" then
+	if self:Split(wndControl:GetName(),"_")[1] == "InventoryBag" then
 		local old = self.db.profile.general.tAnchorOffsetInv
 		local new = {wndControl:GetAnchorOffsets()}
 		self.db.profile.general.tAnchorOffsetInv = new

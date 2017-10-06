@@ -63,6 +63,7 @@ local kChargeSortedBagsDefaults = {
 					},
         Design = {
          fOpacity = 1,
+         Main = 1,
          BG = 1,
          BGColor = "ffffffff",
         },
@@ -193,7 +194,7 @@ function ChargeSortedBags:OnDocLoaded()
 		self.wndDeleteConfirm = 		Apollo.LoadForm(self.xmlDoc, "InventoryDeleteNotice", nil, self)
 		self.wndSalvageConfirm = 		Apollo.LoadForm(self.xmlDoc, "InventorySalvageNotice", nil, self)
 		self.wndSalvageWithKeyConfirm = Apollo.LoadForm(self.xmlDoc, "InventorySalvageWithKeyNotice", nil, self)
-		self.wndMain = 					Apollo.LoadForm(self.xmlDoc, "InventoryBag", nil, self)
+		self.wndMain = 					Apollo.LoadForm(self.xmlDoc, "InventoryBag_"..tostring(self.db.profile.general.optionsList.Design.Main), nil, self)
 		self.wndOptions =				Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
     self.wndSplitSlot =     Apollo.LoadForm(self.xmlDoc, "SplittSlot", nil, self)
 		self.wndSplit = 				Apollo.LoadForm(self.xmlDoc, "SplitStackContainer", nil, self)
@@ -993,4 +994,3 @@ end
 
 local InventoryBagInst = ChargeSortedBags:new()
 InventoryBagInst:Init()
-

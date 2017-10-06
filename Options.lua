@@ -60,12 +60,19 @@ function ChargeSortedBags:SetOptions(CurOptWnd)
     slider:SetMinMax(min,max,tick)
 		slider:SetValue(Opt.Design.fOpacity)
 
-    --Design
-    CurOptWnd:FindChild("Scale_Design"):FindChild("EditBox"):SetText(tostring(Opt.Design.BG))
+    --BGDesign
+    CurOptWnd:FindChild("Scale_BGDesign"):FindChild("EditBox"):SetText(tostring(Opt.Design.BG))
     local min, max , tick = 0, 6, 1
-    local slider = CurOptWnd:FindChild("Scale_Design"):FindChild("SliderBar")
-    slider:SetMinMax(min,max,tick)
-		slider:SetValue(Opt.Design.BG)
+    local slider2 = CurOptWnd:FindChild("Scale_BGDesign"):FindChild("SliderBar")
+    slider2:SetMinMax(min,max,tick)
+		slider2:SetValue(Opt.Design.BG)
+
+    --Main Theme
+    CurOptWnd:FindChild("Scale_MainDesign"):FindChild("EditBox"):SetText(tostring(Opt.Design.Main))
+    local min, max , tick = 1, 2, 1
+    local slider3 = CurOptWnd:FindChild("Scale_MainDesign"):FindChild("SliderBar")
+    slider3:SetMinMax(min,max,tick)
+		slider3:SetValue(Opt.Design.Main)
 
     --Color
     CurOptWnd:FindChild("Swatch"):SetBGColor(self.db.profile.general.optionsList.Design.BGColor)
@@ -139,6 +146,28 @@ function ChargeSortedBags:OnDesignSlideChanged( wndHandler, wndControl, fNewValu
 	EditBox:SetText(tostring(NewValue))
 	self.db.profile.general.optionsList.Design.BG = NewValue
   self.wndMain:FindChild("BG"):SetSprite(Designs[NewValue])
+end
+
+function ChargeSortedBags:OnMainDesignSlideChanged( wndHandler, wndControl, fNewValue, fOldValue )
+	local EditBox = wndControl:GetParent():FindChild("EditBox")
+	local NewValue = math.ceil(fNewValue)
+	EditBox:SetText(tostring(NewValue))
+	self.db.profile.general.optionsList.Design.Main = NewValue
+  self.wndMain:Destroy()
+  self.wndMain = 	Apollo.LoadForm(self.xmlDoc, "InventoryBag_"..tostring(self.db.profile.general.optionsList.Design.Main), nil, self)
+  self.OneSlot = self.wndMain:FindChild("OneBagSlot")
+  self.RealBag = self.OneSlot:FindChild("RealBagWindow")
+  self:SetWindows()
+  self:LoadGrid()
+  self:LoadSlots()
+  self:LoadCurrencies()
+  if self.RealBag:GetTotalEmptyBagSlots() == 0 then
+      self.wndMain:FindChild("Border"):Show(true)
+      self.wndMain:FindChild("Full"):SetText("full")
+  end
+  self:LoadGrid()
+  self:ArrangeChildren()
+  self.wndMain:Show(true)
 end
 ---------------------------------------------------------------------------------------------------
 -- ColorPickerCallback
