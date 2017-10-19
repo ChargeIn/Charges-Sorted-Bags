@@ -75,14 +75,15 @@ end
 function ChargeSortedBags:ShowMain()
 	if self.bFirstLoad then
 		--Timer
-    self:LoadSlots()
+    	self:LoadSlots()
 		self.Timer = ApolloTimer.Create(0.5, true, "OnItemCooldowns", self)
 		self.Timer:Start()
 		self:SetWindows()
 		self:LoadBags()
 		self:LoadCurrencies()
-    self:LoadBagWindow()
+    	self:LoadBagWindow()
 		self.bFirstLoad = false
+		self:LoadGrid()
 	end
 	for i,j in pairs(self.db.profile.general.BagList) do
 		self.db.profile.general.BagList[i] = self:MergeSortlvl(j)
@@ -94,61 +95,210 @@ function ChargeSortedBags:ShowMain()
 	end
 	self:LoadGrid()
 	self:ArrangeChildren()
-	self.wndMain:Show(true)
+	self.wndMain:Invoke()
+	self.wndMain:ToFront()
 end
 
 
 function ChargeSortedBags:ArrangeChildren()
 	local Options = self.db.profile.general.optionsList.General
+	local OptionsList = self.db.profile.general.optionsList
 	local titleHeight = 35
-	local compensate = 16 --Since ArrangeChilderenTile() cuts off Tiles even before the max width is reached the Window needs to wider than columns*IconSize (therefor compensate)
-	local BordersWidth = 61
+	local compensate = 16--16 --Since ArrangeChilderenTile() cuts off Tiles even before the max width is reached the Window needs to wider than columns*IconSize (therefor compensate)
+	local compensate2 = 25
+	local BordersWidth = 14
 	local smallBorder = Options.knSizeIconOption -10 -- The value needs to be smaller than the cube "-10" is best fitting
 	local BagGrid = self.wndMain:FindChild("BagGrid")
 	local Bags = BagGrid:GetChildren()
-
+	local Fill = {}
+	for i = 1,4 do--since 4 is the max columns
+		Fill[i] = {}
+	end
+	if OptionsList.Category.bTrashLast then
+		local trash = nil
+		--Set Trash to last
+		for i,j in pairs(Bags) do
+			if j:GetName() == "Trash" then
+				trash = j
+				table.remove(Bags,i)
+			end
+		end 
+		if trash ~= nil then
+			table.insert(Bags,trash)	
+		end
+	end
+	
+	--Fill Columns
+	for i,j in pairs(Bags) do
+		if OptionsList.Category.ColumnFill[j:GetName()] ~= nil then
+			table.insert(Fill[OptionsList.Category.ColumnFill[j:GetName()]],j:GetName())
+		else
+			table.insert(Fill[1],j:GetName())
+		end
+	end
 	table.sort(Bags, fnSortBagBySize)
 
 	local a,b,c,d = self.wndMain:GetAnchorOffsets()
 	local Width = c-a
-	local LeftSlots = {}
-	LeftSlots[1] = {0, 0 , 0 , 0}
-	local counter = 1
-
-	for i,j in pairs(Bags) do
-		local Bag = j
-		local slots = Bag:FindChild("BagGrid"):GetChildren()
-		local slotsPerRow = math.floor((Options.knBagsWidth-BordersWidth)/Options.knSizeIconOption)
-		if #slots >= slotsPerRow then
-			local rows = math.ceil(#slots/slotsPerRow)
-			counter = counter + 1
-			LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + Options.knBagsWidth - BordersWidth + compensate,
-				LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-			Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + Options.knBagsWidth - BordersWidth + compensate,
-				LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-		else
-			local newHome = false
-			for i,j in pairs(LeftSlots) do
-				if i ~= 1 and newHome == false then
-					local newWidth = j[3]+ #slots*Options.knSizeIconOption
-					if (newWidth < Options.knBagsWidth-BordersWidth) then
-						Bag:SetAnchorOffsets( j[3], j[2],newWidth+smallBorder,j[4])
-						LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
-						newHome = true
+	local columnWidth = (Options.knBagsWidth)/OptionsList.Category.columns
+	local gab = 5
+	if OptionsList.Category.arrange == 0 then  --Best fit
+		for k,v in pairs(Fill) do
+			local LeftSlots = {}
+			LeftSlots[1] = {(k-1)*(columnWidth + gab), 0 , (k-1)*(columnWidth + gab) , 0}
+			local counter = 1	
+			for i,j in pairs(v) do
+				local Bag = BagGrid:FindChild(j)
+				local slots = Bag:FindChild("BagGrid"):GetChildren()
+				local slotsPerRow = 0
+				if k == OptionsList.Category.columns then
+					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
+				else
+					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
+				end
+				if #slots >= slotsPerRow then
+					local rows = math.ceil(#slots/slotsPerRow)
+					counter = counter + 1
+					if k == OptionsList.Category.columns then
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					else
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					end
+				else
+					local newHome = false
+					for i,j in pairs(LeftSlots) do
+						if i ~= 1 and newHome == false then
+							local newWidth = j[3]+ #slots*Options.knSizeIconOption
+							if k == OptionsList.Category.columns then
+								if (newWidth < k*(columnWidth+gab)-BordersWidth-compensate2) then
+									Bag:SetAnchorOffsets( j[3], j[2],newWidth+smallBorder,j[4])
+									LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
+									newHome = true
+								end
+							else
+								if (newWidth < k*(columnWidth+gab)-BordersWidth) then
+									Bag:SetAnchorOffsets( j[3], j[2],newWidth+smallBorder,j[4])
+									LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
+									newHome = true
+								end
+							end
+						end
+					end
+					if newHome == false then
+						counter = counter +1
+						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
+						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
 					end
 				end
-			end
-			if newHome == false then
-				counter = counter +1
-				local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
-				LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
-				Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
 			end
 		end
-		Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+		
+	elseif OptionsList.Category.arrange == 1 then --Same order
+	
+		for k,v in pairs(Fill) do
+			local LeftSlots = {}
+			LeftSlots[1] = {(k-1)*(columnWidth + gab), 0 , (k-1)*(columnWidth + gab) , 0}
+			local counter = 1	
+			for i,j in pairs(v) do
+				local Bag = BagGrid:FindChild(j)
+				local slots = Bag:FindChild("BagGrid"):GetChildren()
+				local slotsPerRow = 0
+				if k == OptionsList.Category.columns then
+					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
+				else
+					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
+				end
+				if #slots >= slotsPerRow then
+					local rows = math.ceil(#slots/slotsPerRow)
+					counter = counter + 1
+					if k == OptionsList.Category.columns then
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					else
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					end
+				else
+					local newHome = false
+					if i ~= 1 and newHome == false then
+						local newWidth = LeftSlots[counter][3]+ #slots*Options.knSizeIconOption
+						if k == OptionsList.Category.columns then
+							if (newWidth < k*(columnWidth+gab)-BordersWidth-compensate2) then
+								Bag:SetAnchorOffsets( LeftSlots[counter][3], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4])
+								LeftSlots[counter] = {LeftSlots[counter][1], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4]}
+								newHome = true
+							end
+						else
+							if (newWidth < k*(columnWidth+gab)-BordersWidth) then
+								Bag:SetAnchorOffsets( LeftSlots[counter][3], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4])
+								LeftSlots[counter] = {LeftSlots[counter][1], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4]}
+								newHome = true
+							end
+						end
+					end
+					if newHome == false then
+						counter = counter +1
+						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
+						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+					end
+				end
+					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+			end
+		end
+		
+	else --allways new row
+		for k,v in pairs(Fill) do
+			local LeftSlots = {}
+			LeftSlots[1] = {(k-1)*(columnWidth + gab), 0 , (k-1)*(columnWidth + gab) , 0}
+			local counter = 1	
+			for i,j in pairs(v) do
+				local Bag = BagGrid:FindChild(j)
+				local slots = Bag:FindChild("BagGrid"):GetChildren()
+				local slotsPerRow = 0
+				if k == OptionsList.Category.columns then
+					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
+				else
+					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
+				end
+				if #slots >= slotsPerRow then
+					local rows = math.ceil(#slots/slotsPerRow)
+					counter = counter + 1
+					if k == OptionsList.Category.columns then
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					else
+						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
+							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
+					end
+				else
+					counter = counter +1
+					local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
+					LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+					Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+				end
+					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+			end
+		end
 	end
 end
-
+	
 function ChargeSortedBags:ArrangeCurrencies()
 	local Currencies = self.wndMain:FindChild("Currencies"):GetChildren()
 	if #Currencies <= 0 then
@@ -250,6 +400,7 @@ end
 
 function ChargeSortedBags:AddNewBag( wndHandler, wndControl, eMouseButton )
 	self.wndNewBag:Show(true)
+	self.wndNewBag:ToFront()
 	self.wndNewBag:FindChild("EditBox"):SetText("Name")
 end
 
@@ -268,7 +419,7 @@ end
 
 
 function ChargeSortedBags:OnClose( wndHandler, wndControl, eMouseButton )
-	wndControl:GetParent():Show(false)
+	wndControl:GetParent():Close()
 end
 
 function ChargeSortedBags:OnBagsClick( wndHandler, wndControl, eMouseButton )
@@ -366,6 +517,41 @@ function ChargeSortedBags:OnCurrencyChanged()
   self:LoadCurrencies()
 end
 
+function ChargeSortedBags:OnColumnChange(wndHandler)
+	local Category = self.db.profile.general.optionsList.Category
+	local name = wndHandler:GetParent():GetName()
+	if wndHandler:GetName() == "Left" then
+		if Category.ColumnFill[name] ~= nil then
+			Category.ColumnFill[name] = Category.ColumnFill[name]-1
+		end
+		if Category.ColumnFill[name] ~= nil and Category.ColumnFill[name] <= 1 then
+			Category.ColumnFill[name] = 1
+			Category.ColumnFill[name] = nil
+		end
+	else
+		if Category.ColumnFill[name] == nil then 
+			Category.ColumnFill[name] = 2 
+		else
+			Category.ColumnFill[name]=Category.ColumnFill[name]+1
+		end
+		if Category.ColumnFill[name] ~= nil and Category.ColumnFill[name] > Category.columns then
+			Category.ColumnFill[name] = Category.columns
+		end
+	end
+	self:ArrangeChildren()
+end
+
+function ChargeSortedBags:OnShowArrowClick( wndHandler, wndControl, eMouseButton )
+	local Bags = self.wndMain:FindChild("BagGrid"):GetChildren()
+	if Bags ~= nil and #Bags ~= 0 then
+		local show = Bags[1]:FindChild("Left"):IsShown()
+		
+		for i,j in pairs(Bags) do
+			j:FindChild("Left"):Show(not show)
+			j:FindChild("Right"):Show(not show)
+		end
+	end
+end
 
 -----------------------------------------------------------------------------------------------
 -- Delete/Salvage Screen

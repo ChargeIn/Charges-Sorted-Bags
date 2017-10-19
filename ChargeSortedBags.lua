@@ -33,9 +33,14 @@ local kChargeSortedBagsDefaults = {
 						autoRepair = true,
 						knSizeIconOption = 40,
 						knBagsWidth = 381,
+						autoWeapons = false,
+						autoArmor = false,
+						autoGadgets = false,
+						autoDye = true,
+						Ilvl = 50,
 					},
 				Currencies = {
-          ["Platinum"]          = true,
+          			["Platinum"]          = true,
 					["Renown"] 						= true,
 					["Elder Gem"]	 				= true,
 					["Vouchers"]	 				= false,
@@ -61,12 +66,18 @@ local kChargeSortedBagsDefaults = {
 					["Character Boost Token"] 		= false,
 					["Protostar Promissory Note"] 	= false,
 					},
-        Design = {
-         fOpacity = 1,
-         Main = 1,
-         BG = 1,
-         BGColor = "ffffffff",
-        },
+		        Design = {
+		         fOpacity = 1,
+		         Main = 1,
+		         BG = 1,
+		         BGColor = "ffffffff",
+		        },
+				Category = {
+					arrange = 0,
+					columns = 1,
+					ColumnFill = {},
+					bTrashLast = true,
+				},
 				Thanks = {
 				},
 			},
@@ -196,13 +207,13 @@ function ChargeSortedBags:OnDocLoaded()
 		self.wndSalvageWithKeyConfirm = Apollo.LoadForm(self.xmlDoc, "InventorySalvageWithKeyNotice", nil, self)
 		self.wndMain = 					Apollo.LoadForm(self.xmlDoc, "InventoryBag_"..tostring(self.db.profile.general.optionsList.Design.Main), nil, self)
 		self.wndOptions =				Apollo.LoadForm(self.xmlDoc, "Options", nil, self)
-    self.wndSplitSlot =     Apollo.LoadForm(self.xmlDoc, "SplittSlot", nil, self)
+    	self.wndSplitSlot =     		Apollo.LoadForm(self.xmlDoc, "SplittSlot", nil, self)
 		self.wndSplit = 				Apollo.LoadForm(self.xmlDoc, "SplitStackContainer", nil, self)
 		self.wndBags = 					Apollo.LoadForm(self.xmlDoc, "BagWindow", nil, self)
 		self.wndNewBag = 				Apollo.LoadForm(self.xmlDoc, "NewBagForm", nil, self)
 		self.OneSlot = self.wndMain:FindChild("OneBagSlot")
 		self.RealBag = self.OneSlot:FindChild("RealBagWindow")
-    self.wndSplitSlot:Show(false)
+    	self.wndSplitSlot:Show(false)
 		self.wndNewBag:Show(false)
 		self.wndOptions:Show(false,true)
 		self.wndMain:Show(false, true)
@@ -234,8 +245,8 @@ function ChargeSortedBags:OnDocLoaded()
 		Apollo.RegisterEventHandler("GenericEvent_SplitItemStack", 				"OnGenericEvent_SplitItemStack", self)
 		Apollo.RegisterEventHandler("DragDropSysBegin",							"OnSystemBeginDragDrop", self)
 		Apollo.RegisterEventHandler("DragDropSysEnd", 							"OnSystemEndDragDrop", self)
-    Apollo.RegisterEventHandler("PlayerCurrencyChanged", 							"OnCurrencyChanged", self)
-    Apollo.RegisterEventHandler("AccountCurrencyChanged", 							"OnCurrencyChanged", self)
+    	Apollo.RegisterEventHandler("PlayerCurrencyChanged", 							"OnCurrencyChanged", self)
+    	Apollo.RegisterEventHandler("AccountCurrencyChanged", 							"OnCurrencyChanged", self)
 
 
 
@@ -254,7 +265,7 @@ function ChargeSortedBags:OnDocLoaded()
 		self.GBankOpen = false
 		self.BagCount = 0
 		self.scroll = nil
-    self.OverSlot = false
+    	self.OverSlot = false
 end
 
 
@@ -541,6 +552,68 @@ function ChargeSortedBags:OnOpenVendor()
 
 	if self.db.profile.general.optionsList.General.autoRepair then
 		RepairAllItemsVendor()
+	end
+	if self.db.profile.general.BagList.Weapons == nil then
+		self.db.profile.general.BagList.Weapons = {}
+	end
+	if self.db.profile.general.BagList.Armor == nil then
+		self.db.profile.general.BagList.Armor = {}
+	end
+	if self.db.profile.general.BagList.Consumables == nil then
+		self.db.profile.general.BagList.Consumables = {}
+	end
+	
+	if self.db.profile.general.optionsList.General.autoWeapons then
+		local Ilvl = self.db.profile.general.optionsList.General.Ilvl
+		for i,j in pairs(self.db.profile.general.BagList.Weapons) do
+			local item = GameLib.GetBagItem(j)
+			local ilvl = item:GetDetailedInfo()["tPrimary"]["nItemLevel"]
+			if ilvl <= Ilvl then
+				SellItemToVendorById(item:GetInventoryId(), 1)
+			end
+		end
+	end
+	if self.db.profile.general.optionsList.General.autoGadgets then
+		local Ilvl = self.db.profile.general.optionsList.General.Ilvl
+		for i,j in pairs(self.db.profile.general.BagList.Armor) do
+			local item = GameLib.GetBagItem(j)
+			local type = item:GetItemFamilyName()
+			if type == "Gear" then
+				local details = item:GetDetailedInfo()["tPrimary"]
+				local ilvl = details["nItemLevel"]
+				if ilvl <= Ilvl and details["arSpells"] ~= nil then
+					SellItemToVendorById(item:GetInventoryId(), 1)
+				end
+			end
+		end
+	end
+	if self.db.profile.general.optionsList.General.autoArmor then
+		local Ilvl = self.db.profile.general.optionsList.General.Ilvl
+		for i,j in pairs(self.db.profile.general.BagList.Armor) do
+			local item = GameLib.GetBagItem(j)
+			local type = item:GetItemFamilyName()
+			if type == "Armor" or "Gear" then
+				local details = item:GetDetailedInfo()["tPrimary"]
+				local ilvl = details["nItemLevel"]
+				if ilvl <= Ilvl and details["arSpells"] == nil then
+					SellItemToVendorById(item:GetInventoryId(), 1)
+				end
+			end
+		end
+	end
+	
+	if self.db.profile.general.optionsList.General.autoDye then
+		for i,j in pairs(self.db.profile.general.BagList.Consumables) do
+			local Ilvl = self.db.profile.general.optionsList.General.Ilvl
+			local item = GameLib.GetBagItem(j)
+			local type = item:GetItemCategoryName()
+			if type == "Dyes" then
+				local details = item:GetDetailedInfo()["tPrimary"]
+				if details["arUnlocks"]~= nil and details["arUnlocks"][1]["bUnlocked"] then
+					SellItemToVendorById(item:GetInventoryId(), 1)
+				end
+			end
+		end
 	end
 end
 
@@ -990,6 +1063,7 @@ function ChargeSortedBags:Split(str, pat)
    end
    return t
 end
+
 
 
 local InventoryBagInst = ChargeSortedBags:new()
