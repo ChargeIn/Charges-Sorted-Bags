@@ -214,7 +214,6 @@ function ChargeSortedBags:OnColumnsSlideChanged( wndHandler, wndControl, fNewVal
 	EditBox:SetText(tostring(NewValue))
 	self.db.profile.general.optionsList.Category.columns = NewValue
 	self:ShowMain()
-	SendVarToRover("s",self.db.profile.general.optionsList.Category.ColumnFill)
 	for i,j in pairs(self.db.profile.general.optionsList.Category.ColumnFill) do
 		if j > NewValue then
 			self.db.profile.general.optionsList.Category.ColumnFill[i] = nil
