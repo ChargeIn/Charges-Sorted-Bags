@@ -376,7 +376,6 @@ function ChargeSortedBags:LoadGrid()
 			local NewBag = Apollo.LoadForm(self.xmlDoc, "NewBag", BagGrid, self)
 			NewBag:SetName(j)
 			NewBag:FindChild("Title"):SetText(j)
-			NewBag:FindChild("Close"):Show(true)
 			for l,k in ipairs(Bag) do
 				local NewSlot = Apollo.LoadForm(self.xmlDoc, "BagItem", NewBag:FindChild("BagGrid"), self)
 				NewSlot:SetAnchorOffsets(0, 0, self.db.profile.general.optionsList.General.knSizeIconOption, self.db.profile.general.optionsList.General.knSizeIconOption)
@@ -415,7 +414,6 @@ function ChargeSortedBags:LoadGrid()
 			EmptySlot:FindChild("Empty"):Show(true)
 			EmptySlot:FindChild("ilvl"):SetText("")
 			EmptySlot:SetSprite(Qualitys[1])
-			NewBag:FindChild("Close"):Show(true)
 			EmptySlot:SetAnchorOffsets(0, 0, self.db.profile.general.optionsList.General.knSizeIconOption, self.db.profile.general.optionsList.General.knSizeIconOption)
 			NewBag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
 		end
@@ -499,17 +497,6 @@ function ChargeSortedBags:RemoveItemFromCustomBag(item)
     end
   end
   return false
-end
-
-function ChargeSortedBags:IsCustomBag(BagName)
-
-  for i,j in pairs(self.db.profile.general.CustomBagListName) do
-    if j == BagName then
-      return true
-    end
-  end
-
-  return fale
 end
 
 function ChargeSortedBags:OnOpenBank()
@@ -711,6 +698,16 @@ function ChargeSortedBags:IsCustom( item )
 	return false
 end
 
+function ChargeSortedBags:IsCustomBag(BagName)
+
+  for i,j in pairs(self.db.profile.general.CustomBagListName) do
+    if j == BagName then
+      return true
+    end
+  end
+
+  return fale
+end
 
 function ChargeSortedBags:OnItemCooldowns()
 	if not self.wndMain:IsShown() then

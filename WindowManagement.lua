@@ -549,6 +549,9 @@ function ChargeSortedBags:OnShowArrowClick( wndHandler, wndControl, eMouseButton
 		for i,j in pairs(Bags) do
 			j:FindChild("Left"):Show(not show)
 			j:FindChild("Right"):Show(not show)
+			if self:IsCustomBag(j:GetName()) then
+				j:FindChild("Close"):Show(not show)
+			end
 		end
 	end
 end
