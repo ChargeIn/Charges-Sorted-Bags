@@ -211,6 +211,9 @@ end
 function ChargeSortedBags:OnColumnsSlideChanged( wndHandler, wndControl, fNewValue, fOldValue )
 	local EditBox = wndControl:GetParent():FindChild("EditBox")
 	local NewValue = math.ceil(fNewValue)
+	
+	if NewValue == self.db.profile.general.optionsList.Category.columns then return end
+	
 	EditBox:SetText(tostring(NewValue))
 	self.db.profile.general.optionsList.Category.columns = NewValue
 	self:ShowMain()

@@ -104,10 +104,10 @@ function ChargeSortedBags:ArrangeChildren()
 	local Options = self.db.profile.general.optionsList.General
 	local OptionsList = self.db.profile.general.optionsList
 	local titleHeight = 35
-	local compensate = 16--16 --Since ArrangeChilderenTile() cuts off Tiles even before the max width is reached the Window needs to wider than columns*IconSize (therefor compensate)
-	local compensate2 = 25
-	local BordersWidth = 14
-	local smallBorder = Options.knSizeIconOption -10 -- The value needs to be smaller than the cube "-10" is best fitting
+	local BordersWidth = 16 -- Grid starts at 8 and ends at -8 (Same goes for the Bags itself they have a grid as well )
+	local smallBorder = 10 -- The value needs to be smaller than the cube "-10" is best fitting
+	local gab = 5
+
 	local BagGrid = self.wndMain:FindChild("BagGrid")
 	local Bags = BagGrid:GetChildren()
 	local Fill = {}
@@ -140,8 +140,7 @@ function ChargeSortedBags:ArrangeChildren()
 
 	local a,b,c,d = self.wndMain:GetAnchorOffsets()
 	local Width = c-a
-	local columnWidth = (Options.knBagsWidth)/OptionsList.Category.columns
-	local gab = 5
+	local columnWidth = math.floor((Options.knBagsWidth-BordersWidth-(OptionsList.Category.columns-1)*gab)/OptionsList.Category.columns)
 	if OptionsList.Category.arrange == 0 then  --Best fit
 		for k,v in pairs(Fill) do
 			local LeftSlots = {}
@@ -150,54 +149,35 @@ function ChargeSortedBags:ArrangeChildren()
 			for i,j in pairs(v) do
 				local Bag = BagGrid:FindChild(j)
 				local slots = Bag:FindChild("BagGrid"):GetChildren()
-				local slotsPerRow = 0
-				if k == OptionsList.Category.columns then
-					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
-				else
-					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
-				end
+				local slotsPerRow = math.floor(math.floor(columnWidth-BordersWidth)/Options.knSizeIconOption)
+				
 				if #slots >= slotsPerRow then
 					local rows = math.ceil(#slots/slotsPerRow)
 					counter = counter + 1
-					if k == OptionsList.Category.columns then
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					else
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					end
+					LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+					Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
 				else
 					local newHome = false
 					for i,j in pairs(LeftSlots) do
 						if i ~= 1 and newHome == false then
-							local newWidth = j[3]+ #slots*Options.knSizeIconOption
-							if k == OptionsList.Category.columns then
-								if (newWidth < k*(columnWidth+gab)-BordersWidth-compensate2) then
-									Bag:SetAnchorOffsets( j[3], j[2],newWidth+smallBorder,j[4])
-									LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
-									newHome = true
-								end
-							else
-								if (newWidth < k*(columnWidth+gab)-BordersWidth) then
-									Bag:SetAnchorOffsets( j[3], j[2],newWidth+smallBorder,j[4])
-									LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
-									newHome = true
-								end
+							local newWidth = j[3]+ #slots*Options.knSizeIconOption + BordersWidth
+							if newWidth < (k-1)*(math.ceil(columnWidth + gab)) + columnWidth then
+								Bag:SetAnchorOffsets( j[3], j[2], newWidth+smallBorder,j[4])
+								LeftSlots[i] = {j[1], j[2],newWidth+smallBorder,j[4]}
+								newHome = true
 							end
 						end
 					end
 					if newHome == false then
 						counter = counter +1
-						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
-						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption +BordersWidth
+						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder	,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder ,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
 					end
 				end
-					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+				self:ArrangeChildrenTiles(Bag)
 			end
 		end
 		
@@ -210,52 +190,33 @@ function ChargeSortedBags:ArrangeChildren()
 			for i,j in pairs(v) do
 				local Bag = BagGrid:FindChild(j)
 				local slots = Bag:FindChild("BagGrid"):GetChildren()
-				local slotsPerRow = 0
-				if k == OptionsList.Category.columns then
-					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
-				else
-					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
-				end
+				local slotsPerRow = math.floor(math.floor(columnWidth-BordersWidth)/Options.knSizeIconOption)
+				
 				if #slots >= slotsPerRow then
 					local rows = math.ceil(#slots/slotsPerRow)
 					counter = counter + 1
-					if k == OptionsList.Category.columns then
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					else
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					end
+					LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+					Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
 				else
 					local newHome = false
 					if i ~= 1 and newHome == false then
-						local newWidth = LeftSlots[counter][3]+ #slots*Options.knSizeIconOption
-						if k == OptionsList.Category.columns then
-							if (newWidth < k*(columnWidth+gab)-BordersWidth-compensate2) then
-								Bag:SetAnchorOffsets( LeftSlots[counter][3], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4])
-								LeftSlots[counter] = {LeftSlots[counter][1], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4]}
-								newHome = true
-							end
-						else
-							if (newWidth < k*(columnWidth+gab)-BordersWidth) then
-								Bag:SetAnchorOffsets( LeftSlots[counter][3], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4])
-								LeftSlots[counter] = {LeftSlots[counter][1], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4]}
-								newHome = true
-							end
+						local newWidth = LeftSlots[counter][3]+ #slots*Options.knSizeIconOption + BordersWidth
+						if newWidth < (k-1)*(math.ceil(columnWidth + gab)) + columnWidth then
+							Bag:SetAnchorOffsets( LeftSlots[counter][3], LeftSlots[counter][2], newWidth+smallBorder,LeftSlots[counter][4])
+							LeftSlots[counter] = {LeftSlots[counter][1], LeftSlots[counter][2],newWidth+smallBorder,LeftSlots[counter][4]}
+							newHome = true
 						end
 					end
 					if newHome == false then
 						counter = counter +1
-						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
-						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+						local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption +BordersWidth
+						LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder	,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+						Bag:SetAnchorOffsets( LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder ,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
 					end
 				end
-					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+				self:ArrangeChildrenTiles(Bag)
 			end
 		end
 		
@@ -267,34 +228,40 @@ function ChargeSortedBags:ArrangeChildren()
 			for i,j in pairs(v) do
 				local Bag = BagGrid:FindChild(j)
 				local slots = Bag:FindChild("BagGrid"):GetChildren()
-				local slotsPerRow = 0
-				if k == OptionsList.Category.columns then
-					slotsPerRow = math.floor((columnWidth - BordersWidth-compensate2+1)/Options.knSizeIconOption)--+1 since every bag  has a border
-				else
-					slotsPerRow = math.floor((columnWidth-BordersWidth)/Options.knSizeIconOption)
-				end
+				local slotsPerRow = math.floor(math.floor(columnWidth-BordersWidth)/Options.knSizeIconOption)
+				
 				if #slots >= slotsPerRow then
 					local rows = math.ceil(#slots/slotsPerRow)
 					counter = counter + 1
-					if k == OptionsList.Category.columns then
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate - compensate2,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					else
-						LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
-						Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth - BordersWidth + compensate,
-							LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
-					end
+					LeftSlots[counter] = {LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight}
+					Bag:SetAnchorOffsets( LeftSlots[counter-1][1], LeftSlots[counter-1][4], LeftSlots[counter-1][1] + columnWidth,
+						LeftSlots[counter-1][4]+ rows*Options.knSizeIconOption + titleHeight)
 				else
 					counter = counter +1
-					local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption+smallBorder
-					LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
-					Bag:SetAnchorOffsets(LeftSlots[counter-1][1], LeftSlots[counter-1][4], newWidth,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
+					local newWidth = LeftSlots[counter-1][1]+ #slots*Options.knSizeIconOption +BordersWidth
+					LeftSlots[counter] = {LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder	,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight}
+					Bag:SetAnchorOffsets( LeftSlots[counter-1][1],LeftSlots[counter-1][4], newWidth+smallBorder ,LeftSlots[counter-1][4]+ Options.knSizeIconOption + titleHeight)
 				end
-					Bag:FindChild("BagGrid"):ArrangeChildrenTiles(0)
+				self:ArrangeChildrenTiles(Bag)
 			end
+		end
+	end
+end
+
+function ChargeSortedBags:ArrangeChildrenTiles(Bag)
+	local l,t,r,b = Bag:GetAnchorOffsets()
+	local nBordersWidth = 16 --Grid Starts at 8 and ends at -8
+	local nWidth = math.ceil(r-l-nBordersWidth)
+	local tiles = Bag:FindChild("BagGrid"):GetChildren()
+	local nIconsize = self.db.profile.general.optionsList.General.knSizeIconOption
+	local tLeftSlots = {0,0,nIconsize}
+	for i,item in pairs(tiles) do
+		item:SetAnchorOffsets( tLeftSlots[2] ,tLeftSlots[1] , tLeftSlots[2] + nIconsize , tLeftSlots[3])
+		tLeftSlots = { 			  tLeftSlots[1] , tLeftSlots[2] + nIconsize ,tLeftSlots[3]}
+		
+		if tLeftSlots[2] + nIconsize > nWidth then
+			tLeftSlots = { tLeftSlots[1] + nIconsize , 0 ,tLeftSlots[3] + nIconsize }
 		end
 	end
 end
